@@ -66,7 +66,7 @@ while getopts "s::a:s:uphvj:" OPTION; do
             IFS=":" JSON_ATTR=(${OPTARG})
             ;;
 	a)
-	    ARGS[${#ARGS[*]}]=${OPTARG}
+	    SCRIPTS_ARGS[${#SCRIPTS_ARGS[*]}]=${OPTARG}
 	    ;;
 	v)
 	    version
@@ -75,6 +75,12 @@ while getopts "s::a:s:uphvj:" OPTION; do
             exit 1
             ;;
     esac
+done
+
+count=1
+for arg in ${SCRIPTS_ARGS[@]}; do
+    ARGS+="${arg//p=} "
+    let "count=count+1"
 done
 
 if [[ -f "${SCRIPT%.sh}.sh" ]]; then
