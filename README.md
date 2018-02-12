@@ -1,0 +1,2 @@
+# custix
+Custom Zabbix Scripts
