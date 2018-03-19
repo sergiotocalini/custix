@@ -18,8 +18,8 @@ APP_WEB="http://www.sergiotocalini.com.ar/"
 
 #################################################################################
 #
-#  Load Oracle Environment
-# -------------------------
+#  Load Environment
+# ------------------
 #
 [ -f ${APP_DIR}/vfs-inotify.conf ] && . ${APP_DIR}/vfs-inotify.conf
 
@@ -66,7 +66,7 @@ while getopts "s::a:s:uphvj:" OPTION; do
             IFS=":" JSON_ATTR=(${OPTARG})
             ;;
 	a)
-	    SCRIPTS_ARGS[${#SCRIPTS_ARGS[*]}]=${OPTARG}
+	    ARGS[${#ARGS[*]}]=${OPTARG//p=}
 	    ;;
 	v)
 	    version
@@ -75,12 +75,6 @@ while getopts "s::a:s:uphvj:" OPTION; do
             exit 1
             ;;
     esac
-done
-
-count=1
-for arg in ${SCRIPTS_ARGS[@]}; do
-    ARGS+="${arg//p=} "
-    let "count=count+1"
 done
 
 if [[ -f "${SCRIPT%.sh}.sh" ]]; then
