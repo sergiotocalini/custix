@@ -2,7 +2,7 @@
 
 type=${1}
 
-OS_FAMILY=`lsb_release -i -s`
+OS_FAMILY=`lsb_release -s -i 2>/dev/null` 
 if [[ ${OS_FAMILY} =~ (Ubuntu|Debian) ]]; then
     if [[ ${type} == "security" ]]; then
 	res=`apt-get -s upgrade | grep -ci ^inst.*security | tr -d '\n'`
