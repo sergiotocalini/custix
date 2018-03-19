@@ -78,7 +78,7 @@ while getopts "s::a:s:uphvj:" OPTION; do
 done
 
 if [[ -f "${SCRIPT%.sh}.sh" ]]; then
-    rval=`${SCRIPT%.sh}.sh ${ARGS} 2>/dev/null`
+    rval=`${SCRIPT%.sh}.sh ${ARGS[@]} 2>/dev/null`
     rcode="${?}"
     if [[ ${JSON} -eq 1 ]]; then
        echo '{'
