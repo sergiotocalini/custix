@@ -21,7 +21,7 @@ APP_WEB="http://www.sergiotocalini.com.ar/"
 #  Load Environment
 # ------------------
 #
-[ -f ${APP_DIR}/vfs-inotify.conf ] && . ${APP_DIR}/vfs-inotify.conf
+[ -f ${APP_DIR}/${APP_NAME%.*}.conf ] && . ${APP_DIR}/${APP_NAME%.*}.conf
 
 #
 #################################################################################
