@@ -1,36 +1,51 @@
 #!/usr/bin/env ksh
+SCRIPT_NAME=$(basename $0)
+SCRIPT_DIR=$(dirname $0)
+SCRIPT_CACHE=${SCRIPT_DIR}/tmp
+SCRIPT_CACHE_TTL=10
+TIMESTAMP=`date '+%s'`
 
-type=${1}
+resource=${1}
+property=${2}
 
-OS_VENDOR=`uname -s`
-if [[ ${OS_VENDOR} == 'Linux' ]]; then
-    regex="(Not Specified|Not Present)"
-    if [[ ${type} == 'chassis' ]]; then
-	data[0]=`dmidecode -s system-manufacturer`
-	data[1]=`dmidecode -s system-product-name`
-	data[2]=`dmidecode -s system-serial-number`
-	data[3]=`dmidecode -s chassis-type`
-	for index in ${!data[@]}; do
-	    data[${index}]=`echo "${data[${index}]}" | sed -E "s:${regex}::g"`
-	done
-	res=`printf "%s " "${data[@]}"`
-    elif [[ ${type} == 'type' ]]; then
-	data=`dmidecode -s system-manufacturer`
-	if [[ ${data} =~ (QEMU|VMware.*) ]]; then
-	    res='Virtual'
+refresh_cache() {
+    [[ -d ${SCRIPT_CACHE} ]] || mkdir -p ${SCRIPT_CACHE}
+    file=${SCRIPT_CACHE}/${SCRIPT_NAME%.*}.json
+    if [[ $(( `stat -c '%Y' "${file}" 2>/dev/null`+60*${SCRIPT_CACHE_TTL} )) -le ${TIMESTAMP} ]]; then
+	regex="(Not Specified|Not Present)"
+	dmi=`dmidecode`
+	dmi_system=`echo "${dmi}" | sed '/System Information/, /Handle.*/!d'`
+	dmi_chassis=`echo "${dmi}" | sed '/Chassis Information/, /Handle.*/!d'`
+
+	vendor=`echo "${dmi_system}"|grep "Manufacturer:"|awk '{print $2}'|awk '{$1=$1};1'`
+	sku=`echo "${dmi_system}"|grep "SKU Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
+	serial=`echo "${dmi_system}"|grep "Serial Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
+	model=`echo "${dmi_system}"|grep "Product Name:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
+	arch=`arch`
+	chassis_type=`echo "${dmi_chassis}"|grep "Type:"|awk '{print $2}'|awk '{$1=$1};1'`
+	if [[ ${vendor} =~ (QEMU|VMware.*) ]]; then
+            type='Virtual'
 	else
-	    res='Physical'
+            type='Physical'
 	fi
-    elif [[ ${type} == 'model' ]]; then
-	res=`dmidecode -t system | grep "SKU Number:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-    elif [[ ${type} == 'vendor' ]]; then
-	res=`dmidecode -s system-manufacturer`
-    elif [[ ${type} == 'serial' ]]; then
-	res=`dmidecode -s system-serial-number`
-    elif [[ ${type} == 'arch' ]]; then
-	res=`arch`
+	chassis[0]=${vendor}
+        chassis[1]=${model}
+        chassis[2]=${serial}
+        chassis[3]=${chassis_type}
+        for index in ${!chassis[@]}; do
+            chassis[${index}]=`echo "${chassis[${index}]}" | sed -E "s:${regex}::g"`
+        done
+        chassis=`printf "%s " "${chassis[@]}"`
+	blockdevices=`lsblk -d -ibo NAME,SIZE,VENDOR,SUBSYSTEMS,SERIAL -J | jq .blockdevices`
+	json_keys=('vendor' 'type' 'blockdevices' 'model' 'sku' 'chassis' 'serial' 'arch')
+	for key in ${json_keys[@]}; do
+	    jq -c ".${key}='${${key}}'" ${file}
+	done
     fi
-fi
+    echo "${file}"
+}
+json=$(refresh_cache)
+res=`jq ".${resource/full/}" ${json}`
 
 echo ${res:-0}
 exit ${rcode:-0}
