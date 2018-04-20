@@ -13,6 +13,9 @@ APP_NAME=$(basename $0)
 APP_DIR=$(dirname $0)
 APP_VER="0.0.1"
 APP_WEB="http://www.sergiotocalini.com.ar/"
+TIMESTAMP=`date '+%s'`
+CACHE_DIR=${APP_DIR}/tmp
+CACHE_TTL=10                                      # IN MINUTES
 #
 #################################################################################
 

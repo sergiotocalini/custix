@@ -13,7 +13,7 @@ refresh_cache() {
     file=${SCRIPT_CACHE}/${SCRIPT_NAME%.*}.json
     if [[ $(( `stat -c '%Y' "${file}" 2>/dev/null`+60*${SCRIPT_CACHE_TTL} )) -le ${TIMESTAMP} ]]; then
 	regex="(Not Specified|Not Present)"
-	dmi=`dmidecode`
+	dmi=`sudo dmidecode`
 	meminfo=`cat /proc/meminfo`
 	cpuinfo=`lscpu`
 
@@ -38,19 +38,25 @@ refresh_cache() {
             chassis[${index}]=`echo "${chassis[${index}]}" | sed -E "s:${regex}::g"`
         done
         chassis=`echo "${chassis[@]}"`
-	memory=`echo "${meminfo}" | grep "^MemTotal:" | awk -F ':' '{print $2}' | awk '{a=$1 * 1024; print a}'` 
-        swap=`echo "${meminfo}" | grep "^SwapTotal:" | awk -F ':' '{print $2}' | awk '{a=$1 * 1024;print a}'`
+	memory=`echo "${meminfo}" | grep "^MemTotal:" | awk -F ':' '{print $2}' \
+		     | awk '{a=$1 * 1024; print a}'` 
+        swap=`echo "${meminfo}" | grep "^SwapTotal:" | awk -F ':' '{print $2}' \
+		   | awk '{a=$1 * 1024;print a}'`
 	cpu_count=`echo "${cpuinfo}" | grep "^CPU(s):" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_arch=`echo "${cpuinfo}" | grep "^Architecture:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_model=`echo "${cpuinfo}" | grep "^Model name:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_sockets=`echo "${cpuinfo}" | grep "^Socket(s):" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_vendor=`echo "${cpuinfo}" | grep "^Vendor ID:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-	cpu_cores_per_socket=`echo "${cpuinfo}" | grep "^Core(s) per socket:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-	cpu_threads_per_core=`echo "${cpuinfo}" | grep "^Thread(s) per core:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-	hv_vendor=`echo "${cpuinfo}" | grep "^Hypervisor vendor:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-	virt_type=`echo "${cpuinfo}" | grep "^Virtualization type:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
+	cpu_cores_per_socket=`echo "${cpuinfo}" | grep "^Core(s) per socket:" \
+				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
+	cpu_threads_per_core=`echo "${cpuinfo}" | grep "^Thread(s) per core:" \
+				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
+	hv_vendor=`echo "${cpuinfo}" | grep "^Hypervisor vendor:" | awk -F ':' '{print $2}' \
+			| awk '{$1=$1};1'`
+	virt_type=`echo "${cpuinfo}" | grep "^Virtualization type:" | awk -F ':' '{print $2}' \
+			| awk '{$1=$1};1'`
 
-	json_raw=`lsblk -d -ibo NAME,SIZE,VENDOR,SUBSYSTEMS,SERIAL -J | jq .`
+	json_raw=`lsblk -d -ibo NAME,SIZE,VENDOR,SUBSYSTEMS,SERIAL -J | jq . 2>/dev/null`
 	json_keys=(
 	  'vendor' 'type' 'model' 'sku' 'chassis' 'serial' 'memory' 'swap' 'cpu_count' 'cpu_arch'
 	  'cpu_model' 'cpu_sockets' 'cpu_vendor' 'cpu_cores_per_socket' 'cpu_threads_per_core'
@@ -58,7 +64,7 @@ refresh_cache() {
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
-	    json_raw=`echo "${json_raw}" | jq ".${key}=\"${value}\""`
+	    json_raw=`echo "${json_raw}" | jq ".${key}=\"${value}\"" 2>/dev/null`
 	done
         echo "${json_raw}" | jq -S . 2>/dev/null > ${file}
     fi

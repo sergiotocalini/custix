@@ -1,6 +1,8 @@
 #!/usr/bin/env ksh
+SCRIPT_DIR=$(dirname $0)
+SCRIPT_CACHE=${SCRIPT_DIR}/tmp
 
-type=${1}
+resource=${1}
 
 OS_FAMILY=`lsb_release -s -i 2>/dev/null` 
 if [[ ${OS_FAMILY} =~ (Ubuntu|Debian) ]]; then
@@ -8,9 +10,9 @@ if [[ ${OS_FAMILY} =~ (Ubuntu|Debian) ]]; then
 	echo 'APT::Periodic::Enable "1";' > /etc/apt/apt.conf.d/02custix
 	echo 'APT::Periodic::Update-Package-Lists "1";' >> /etc/apt/apt.conf.d/02custix
     fi
-    if [[ ${type} == "security" ]]; then
+    if [[ ${resource} == "security" ]]; then
 	res=`apt-get -s upgrade | grep -ci ^inst.*security | tr -d '\n'`
-    elif [[ ${type} == "updates" ]]; then
+    elif [[ ${resource} == "updates" ]]; then
 	res=`apt-get -s upgrade | grep -iPc '^Inst((?!security).)*$' | tr -d '\n'`
     fi
 fi

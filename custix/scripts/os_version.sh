@@ -1,6 +1,8 @@
 #!/usr/bin/env ksh
+SCRIPT_DIR=$(dirname $0)
+SCRIPT_CACHE=${SCRIPT_DIR}/tmp
 
-type=${1}
+resource=${1}
 
 OS_VENDOR=`uname -s`
 if [[ ${OS_VENDOR} == 'Linux' ]]; then
