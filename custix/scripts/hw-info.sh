@@ -38,10 +38,8 @@ refresh_cache() {
             chassis[${index}]=`echo "${chassis[${index}]}" | sed -E "s:${regex}::g"`
         done
         chassis=`echo "${chassis[@]}"`
-	memory=`echo "${meminfo}" | grep "^MemTotal:" | awk -F ':' '{print $2}' \
-		     | awk '{a=$1 * 1024; print a}'` 
-        swap=`echo "${meminfo}" | grep "^SwapTotal:" | awk -F ':' '{print $2}' \
-		   | awk '{a=$1 * 1024;print a}'`
+	memory=`echo "${meminfo}" | grep "^MemTotal:" | awk -F ':' '{printf "%10.0f\n", $2*1024}'` 
+        swap=`echo "${meminfo}" | grep "^SwapTotal:" | awk -F ':' '{printf "%10.0f\n", $2*1024}'`
 	cpu_count=`echo "${cpuinfo}" | grep "^CPU(s):" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_arch=`echo "${cpuinfo}" | grep "^Architecture:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_model=`echo "${cpuinfo}" | grep "^Model name:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
