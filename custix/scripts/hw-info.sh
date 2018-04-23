@@ -25,7 +25,7 @@ refresh_cache() {
 	serial=`echo "${dmi_system}"|grep "Serial Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	model=`echo "${dmi_system}"|grep "Product Name:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	chassis_type=`echo "${dmi_chassis}"|grep "Type:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
-	if [[ ${vendor} =~ (QEMU|VMware.*) ]]; then
+	if [[ ${vendor} =~ (QEMU|VMware.*|Xen|VirtualBox) ]]; then
             type='Virtual'
 	else
             type='Physical'
@@ -56,7 +56,7 @@ refresh_cache() {
 	virt_type=`echo "${cpuinfo}" | grep "^Virtualization type:" | awk -F ':' '{print $2}' \
 			| awk '{$1=$1};1'`
 
-	json_raw=`lsblk -d -ibo NAME,SIZE,VENDOR,SUBSYSTEMS,SERIAL -J | jq . 2>/dev/null`
+	json_raw=`lsblk -d -ibo NAME,SIZE,VENDOR,SUBSYSTEMS,SERIAL -J 2>/dev/null | jq . 2>/dev/null`
 	json_keys=(
 	  'vendor' 'type' 'model' 'sku' 'chassis' 'serial' 'memory' 'swap' 'cpu_count' 'cpu_arch'
 	  'cpu_model' 'cpu_sockets' 'cpu_vendor' 'cpu_cores_per_socket' 'cpu_threads_per_core'
@@ -64,9 +64,9 @@ refresh_cache() {
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
-	    json_raw=`echo "${json_raw}" | jq ".${key}=\"${value}\"" 2>/dev/null`
+	    json_raw=`echo "${json_raw:-{}}" | jq ".${key}=\"${value}\"" 2>/dev/null`
 	done
-        echo "${json_raw}" | jq -S . 2>/dev/null > ${file}
+        echo "${json_raw}" | jq . 2>/dev/null > ${file}
     fi
     echo "${file}"
 }
