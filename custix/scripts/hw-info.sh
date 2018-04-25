@@ -19,11 +19,18 @@ refresh_cache() {
 
 	dmi_system=`echo "${dmi}" | sed '/^System Information/, /Handle.*/!d'`
 	dmi_chassis=`echo "${dmi}" | sed '/^Chassis Information/, /Handle.*/!d'`
-
+	dmi_moboard=`echo "${dmi}" | sed '/^Chassis Information/, /Handle.*/!d'`
+	
 	vendor=`echo "${dmi_system}"|grep "Manufacturer:"|awk '{print $2}'|awk '{$1=$1};1'`
-	sku=`echo "${dmi_system}"|grep "SKU Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	serial=`echo "${dmi_system}"|grep "Serial Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	model=`echo "${dmi_system}"|grep "Product Name:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
+
+	if [[ ${vendor} =~ (Supermicro) ]]; then
+	    dmi_moboard=`echo "${dmi}" | sed '/^Base Board Information/, /Handle.*/!d'`
+	    serial=`echo "${dmi_moboard}"|grep "Serial Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
+	    model=`echo "${dmi_moboard}"|grep "Product Name:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
+	fi
+	sku=`echo "${dmi_system}"|grep "SKU Number:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	chassis_type=`echo "${dmi_chassis}"|grep "Type:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	if [[ ${vendor} =~ (QEMU|VMware.*|Xen|VirtualBox) ]]; then
             type='virtual'
