@@ -106,7 +106,7 @@ if [[ -f "${SCRIPT%.sh}.sh" ]]; then
        echo '   ]'
        echo '}'
     else
-       echo ${rval:-0}
+       echo "${rval:-0}"
     fi
 else
     echo "ZBX_NOTSUPPORTED"
