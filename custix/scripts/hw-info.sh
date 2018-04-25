@@ -26,9 +26,9 @@ refresh_cache() {
 	model=`echo "${dmi_system}"|grep "Product Name:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	chassis_type=`echo "${dmi_chassis}"|grep "Type:"|awk -F ':' '{print $2}'|awk '{$1=$1};1'`
 	if [[ ${vendor} =~ (QEMU|VMware.*|Xen|VirtualBox) ]]; then
-            type='Virtual'
+            type='virtual'
 	else
-            type='Physical'
+            type='physical'
 	fi
 	chassis[0]="${vendor}"
         chassis[1]="${model}"
@@ -39,7 +39,7 @@ refresh_cache() {
         done
         chassis=`echo "${chassis[@]}"`
 	memory=`echo "${meminfo}" | grep "^MemTotal:" | awk -F ':' '{printf "%10.0f\n", $2*1024}'` 
-        swap=`echo "${meminfo}" | grep "^SwapTotal:" | awk -F ':' '{printf "%10.0f\n", $2*1024}'`
+        memory_swap=`echo "${meminfo}" | grep "^SwapTotal:" | awk -F ':' '{printf "%10.0f\n", $2*1024}'`
 	cpu_count=`echo "${cpuinfo}" | grep "^CPU(s):" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_arch=`echo "${cpuinfo}" | grep "^Architecture:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_model=`echo "${cpuinfo}" | grep "^Model name:" | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
@@ -49,16 +49,24 @@ refresh_cache() {
 				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_threads_per_core=`echo "${cpuinfo}" | grep "^Thread(s) per core:" \
 				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-	hv_vendor=`echo "${cpuinfo}" | grep "^Hypervisor vendor:" | awk -F ':' '{print $2}' \
-			| awk '{$1=$1};1'`
-	virt_type=`echo "${cpuinfo}" | grep "^Virtualization type:" | awk -F ':' '{print $2}' \
-			| awk '{$1=$1};1'`
 
-	json_raw=`lsblk -d -ibo NAME,SIZE,VENDOR,SUBSYSTEMS,SERIAL -J 2>/dev/null | jq . 2>/dev/null`
+	json_raw=`lsblk -d -ibo NAME,SIZE,MODEL,SERIAL,VENDOR -J 2>/dev/null | jq . 2>/dev/null`
 	json_keys=(
-	  'vendor' 'type' 'model' 'sku' 'chassis' 'serial' 'memory' 'swap' 'cpu_count' 'cpu_arch'
-	  'cpu_model' 'cpu_sockets' 'cpu_vendor' 'cpu_cores_per_socket' 'cpu_threads_per_core'
-	  'hv_vendor' 'virt_type'
+	    'chassis'
+	    'cpu_arch'
+	    'cpu_cores_per_socket'
+	    'cpu_count'
+	    'cpu_model'
+	    'cpu_sockets'
+	    'cpu_threads_per_core'
+	    'cpu_vendor'
+	    'memory'
+	    'memory_swap'
+	    'model'
+	    'serial'
+	    'sku'
+	    'type'
+	    'vendor'
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
