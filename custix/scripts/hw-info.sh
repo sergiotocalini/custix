@@ -50,7 +50,7 @@ refresh_cache() {
 	cpu_threads_per_core=`echo "${cpuinfo}" | grep "^Thread(s) per core:" \
 				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 
-	json_raw=`lsblk -d -ibo NAME,SIZE,MODEL,SERIAL,VENDOR -J 2>/dev/null | jq . 2>/dev/null`
+	json_raw=`lsblk -d -ibo MODEL,NAME,SERIAL,SIZE,VENDOR -J 2>/dev/null | jq . 2>/dev/null`
 	json_keys=(
 	    'chassis'
 	    'cpu_arch'
