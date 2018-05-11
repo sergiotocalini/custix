@@ -1,0 +1,7 @@
+{
+   "name": "projectx",
+   "filters": [
+      "-A CI_",
+      "ACCEPT"
+   ]
+}
