@@ -49,22 +49,48 @@ refresh_cache() {
     if [[ $(( `stat -c '%Y' "${file}" 2>/dev/null`+60*${SCRIPT_CACHE_TTL} )) -le ${TIMESTAMP} ]]; then
         json_raw="{ \"name\": \"${resource}\", \"sources\": {}}"
 
-	iptables_data=`sudo iptables-save -c | grep -v -- "\[0:0\]"`
-        filters=`jq -r '.filters[]' ${config_json} 2>/dev/null`
-        while read rule; do
-           iptables_data=`echo "${iptables_data}" | grep -- "${rule}"`
-        done <<< "${filters}"
-        
-        while read line; do
-           source=`echo "${line}" | awk '{print $5}'`
-           packages=`echo "${line}" | awk '{print $1}' | awk -F: '{print $1}' | sed 's/\[//g'`
-           bytes=`echo "${line}" | awk '{print $1}' | awk -F: '{print $2}' | sed 's/\]//g'`
-           stats_data="{}"
-           stats_data=`echo "${stats_data}" | jq -c '.packages="'${packages}'"'`
-           stats_data=`echo "${stats_data}" | jq -c '.bytes="'${bytes}'"'`
-           json_raw=`echo "${json_raw}" | jq -c '.sources+={"'${source}'":'"${stats_data}"'}'`
-        done <<< "${iptables_data}"
+	iptables_data=`sudo iptables-save -c | grep -- "^\[" | grep -v -- "\[0:0\]" | sort -k 5`
 
+	input_data="${iptables_data}"
+        input_filters=`jq -r '.filters.input[]' ${config_json} 2>/dev/null`
+        while read rule; do
+           input_data=`echo "${iptables_data}" | grep -- "${rule}"`
+        done <<< "${input_filters}"
+
+	while read line; do
+            source=`echo "${line}" | awk '{print $5}'`
+	    json_raw=`echo "${json_raw}" | jq -c '.sources+={"'${source}'": {} }'`
+
+            packages=`echo "${line}" | awk '{print $1}' | awk -F: '{print $1}' | sed 's/\[//g'`
+            bytes=`echo "${line}" | awk '{print $1}' | awk -F: '{print $2}' | sed 's/\]//g'`
+	    
+            istats="{}"
+            istats=`echo "${istats}" | jq -c '.packages="'${packages}'"'`
+            istats=`echo "${istats}" | jq -c '.bytes="'${bytes}'"'`
+	    
+            json_raw=`echo "${json_raw}" | jq -c '.sources."'${source}'".input={'"${istats}"'}'`
+        done <<< "${input_data}"
+
+	output_data="${iptables_data}"
+        output_filters=`jq -r '.filters.output[]' ${config_json} 2>/dev/null`
+        while read rule; do
+           output_data=`echo "${iptables_data}" | grep -- "${rule}"`
+        done <<< "${input_filters}"
+
+	while read line; do
+            source=`echo "${line}" | awk '{print $5}'`
+	    json_raw=`echo "${json_raw}" | jq -c '.sources+={"'${source}'": {} }'`
+
+            packages=`echo "${line}" | awk '{print $1}' | awk -F: '{print $1}' | sed 's/\[//g'`
+            bytes=`echo "${line}" | awk '{print $1}' | awk -F: '{print $2}' | sed 's/\]//g'`
+	    
+            ostats="{}"
+            ostats=`echo "${ostats}" | jq -c '.packages="'${packages}'"'`
+            ostats=`echo "${ostats}" | jq -c '.bytes="'${bytes}'"'`
+	    
+            json_raw=`echo "${json_raw}" | jq -c '.sources."'${source}'".output={'"${ostats}"'}'`
+        done <<< "${output_data}"
+	
         echo "${json_raw}" | jq . 2>/dev/null > ${file}
     fi
     echo "${file}"
