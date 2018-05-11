@@ -2,7 +2,7 @@
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SCRIPT_CACHE=${SCRIPT_DIR}/tmp
-SCRIPT_CACHE_TTL=0
+SCRIPT_CACHE_TTL=10
 TIMESTAMP=`date '+%s'`
 
 resource=${1:-full}

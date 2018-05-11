@@ -69,16 +69,29 @@ refresh_cache() {
     fi
     echo "${file}"
 }
-stats_json=$(refresh_cache ${profile})
-[ ${?} != 0 ] && zabbix_not_support
 
-if ! [[ ${source} =~ (^[[:blank:]]*$|full) ]]; then
-   attr="sources.\"${source}\""
-   if ! [[ ${property} =~ (^[[:blank:]]*$|all) ]]; then
-      attr+=".${property/all/}"
-   fi
+if [[ ${method} == "stats" ]]; then
+    stats_json=$(refresh_cache ${profile})
+    [ ${?} != 0 ] && zabbix_not_support
+
+    if ! [[ ${source} =~ (^[[:blank:]]*$|full|all) ]]; then
+        attr="sources.\"${source}\""
+        if ! [[ ${property} =~ (^[[:blank:]]*$|full|all) ]]; then
+            attr+=".${property/all/}"
+        fi
+    fi
+    res=`jq -r ".${attr/full/}" ${stats_json}`
+    echo "${res:-0}"
+elif [[ ${method} == "sources" ]]; then
+    for configfile in $(get_configfile); do
+        profile=`jq -r '.name' ${configfile} 2>/dev/null`
+        stats_json=$(refresh_cache ${profile})
+        [ ${?} != 0 ] && zabbix_not_support
+
+        for src in `jq -r '.sources|keys[]' ${stats_json} 2>/dev/null`; do
+            echo "${profile}|${src}"
+        done
+    done
 fi
-res=`jq -r ".${attr/full/}" ${stats_json}`
 
-echo "${res:-0}"
 exit ${rcode:-0}
