@@ -1,7 +1,7 @@
 {
    "name": "projectx",
-   "filters": [
-      "-A CI_",
-      "ACCEPT"
-   ]
+   "filters": {
+      "input": ".*-A CI_.*ACCEPT$",
+      "output": ".*-A CO_.*ACCEPT$"
+   }
 }
