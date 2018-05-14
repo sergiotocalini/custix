@@ -30,7 +30,7 @@ get_configfile() {
     else
 	count=0
 	for configfile in ${JSON_DIR}/*.json; do
-	    if ! [[ ${configfile} =~ (.*/*.json|^[[:blank:]]*$) ]]; then
+	    if ! [[ ${configfile} =~ (.*/\*.json|^[[:blank:]]*$) ]]; then
 		res[${count}]=${configfile}
 		let "count=count+1"
 	    fi
