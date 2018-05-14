@@ -20,19 +20,21 @@ get_configfile() {
 
     JSON_DIR="${SCRIPT_DIR}/${SCRIPT_NAME%.*}.d"
     if [[ ${resource} != 'all' ]]; then
-       for configfile in ${JSON_DIR}/*.json; do
-          name=`jq -r 'select(.name=="'${resource}'")|.name' ${configfile} 2>/dev/null`
-          if [[ ${name} == ${resource} ]]; then
-             res=${configfile}
-             break
-          fi
-       done
+	for configfile in ${JSON_DIR}/*.json; do
+            name=`jq -r 'select(.name=="'${resource}'")|.name' ${configfile} 2>/dev/null`
+            if [[ ${name} == ${resource} ]]; then
+		res=${configfile}
+		break
+            fi
+	done
     else
-       count=0
-       for configfile in ${JSON_DIR}/*.json; do
-          res[${count}]=${configfile}
-          let "count=count+1"
-       done
+	count=0
+	for configfile in ${JSON_DIR}/*.json; do
+	    if ! [[ ${configfile} =~ (.*/*.json|^[[:blank:]]*$) ]]; then
+		res[${count}]=${configfile}
+		let "count=count+1"
+	    fi
+	done
     fi
     echo "${res[@]:-0}"
     return 0
@@ -99,6 +101,7 @@ if [[ ${method} == "stats" ]]; then
 elif [[ ${method} == "sources" ]]; then
     for configfile in $(get_configfile); do
         profile=`jq -r '.name' ${configfile} 2>/dev/null`
+	[[ -z ${profile} ]] && continue
         stats_json=$(refresh_cache ${profile})
         [ ${?} != 0 ] && zabbix_not_support
 
