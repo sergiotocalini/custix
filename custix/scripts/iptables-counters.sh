@@ -67,7 +67,7 @@ refresh_cache() {
             json_raw=`echo "${json_raw}" | jq -c '.sources."'${source}'".input='"${istats}"`
         done < <(echo "${input_data}")
 
-        output_filter=`jq -r '.filters.output[]' ${config_json} 2>/dev/null`
+        output_filter=`jq -r '.filters.output' ${config_json} 2>/dev/null`
 	output_data=`echo "${iptables_data}" | egrep -- "${output_filter}"`
 	while read line; do
             source=`echo "${line}" | awk '{print $5}'`
