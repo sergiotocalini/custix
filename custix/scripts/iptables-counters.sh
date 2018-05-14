@@ -52,10 +52,6 @@ refresh_cache() {
         json_raw="{ \"name\": \"${resource}\", \"sources\": {}}"
 
 	iptables_data=`sudo iptables-save -c | grep -- "^\[" | grep -v -- "\[0:0\]" | sort -k 5`
-        while read line; do
-            source=`echo "${line}" | awk '{print $5}'`
-            json_raw=`echo "${json_raw}" | jq -c '.sources+={"'${source}'":{}}'`
-        done < <(echo "${iptables_data}")
 
         input_filter=`jq -r '.filters.input' ${config_json} 2>/dev/null`
 	input_data=`echo "${iptables_data}" | egrep -- "${input_filter}"`
