@@ -69,7 +69,7 @@ refresh_cache() {
 		json_raw+="\"size\": \"${SIZE}\","
 		json_raw+="\"vendor\": null"
 		json_raw+="}"
-            done < <(lsblk -d -ibo MODEL,NAME,SIZE -P)
+            done < <(lsblk -d -ibo MODEL,NAME,SIZE -P 2> /dev/null)
             json_raw+="]}"
         fi
 	json_keys=(
