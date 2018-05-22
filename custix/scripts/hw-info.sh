@@ -58,6 +58,20 @@ refresh_cache() {
 				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 
 	json_raw=`lsblk -d -ibo MODEL,NAME,SERIAL,SIZE,VENDOR -J 2>/dev/null | jq . 2>/dev/null`
+        if [[ -z ${json_raw} ]]; then
+            json_raw="{\"blockdevices\": ["
+            while read line; do
+		eval ${line}
+                json_raw+="{"
+		json_raw+="\"model\": \"${MODEL}\","
+		json_raw+="\"name\": \"${NAME}\","
+		json_raw+="\"serial\": null,"
+		json_raw+="\"size\": \"${SIZE}\","
+		json_raw+="\"vendor\": null"
+		json_raw+="}"
+            done < <(lsblk -d -ibo MODEL,NAME,SIZE -P)
+            json_raw+="]}"
+        fi
 	json_keys=(
 	    'chassis'
 	    'cpu_arch'
