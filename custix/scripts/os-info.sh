@@ -2,7 +2,7 @@
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SCRIPT_CACHE=${SCRIPT_DIR}/tmp
-SCRIPT_CACHE_TTL=5
+SCRIPT_CACHE_TTL=10
 TIMESTAMP=`date '+%s'`
 
 resource=${1:-full}
@@ -12,7 +12,6 @@ refresh_cache() {
     [[ -d ${SCRIPT_CACHE} ]] || mkdir -p ${SCRIPT_CACHE}
     file=${SCRIPT_CACHE}/${SCRIPT_NAME%.*}.json
     if [[ $(( `stat -c '%Y' "${file}" 2>/dev/null`+60*${SCRIPT_CACHE_TTL} )) -le ${TIMESTAMP} ]]; then
-	regex="(Not Specified|Not Present)"
         uname_sr=`uname -sr 2>/dev/null`
 	family=`echo ${uname_sr} | awk '{print $1}'`
         kernel=`echo ${uname_sr} | awk '{print $2}'`
@@ -47,21 +46,21 @@ refresh_cache() {
             filesystems="${filesystems%?} ]"
             json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
 	fi
-        IFS=":" APPS=(${AMANA_APPS})
-        for app in ${APPS[@]}; do
-            if [[ ${app} == 'springboot' ]]; then
-		springboot=`/etc/init.d/spring-boot list json id name desc version 2>/dev/null`
-		json_raw=`echo "${json_raw:-{}}" | jq ".apps.springboot=${springboot}" 2>/dev/null`
-	    elif [[ ${app} == 'gunicorn' ]]; then
-		gunicorn=`/etc/init.d/gunicorn list json id name desc version 2>/dev/null`
-		json_raw=`echo "${json_raw:-{}}" | jq ".apps.gunicorn=${gunicorn}" 2>/dev/null`
-            elif [[ ${app} == 'mysql' ]]; then
-		db_count=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s db_count 2>/dev/null`
-		my_version=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s version 2>/dev/null`
-		mysql="{\"version\": \"${my_version}\", \"databases\": ${db_count}}"
-		json_raw=`echo "${json_raw:-{}}" | jq ".apps.mysql=${mysql}" 2>/dev/null`
-            fi
-        done
+        # IFS=":" APPS=(${AMANA_APPS})
+        # for app in ${APPS[@]}; do
+        #     if [[ ${app} == 'springboot' ]]; then
+	# 	springboot=`/etc/init.d/spring-boot list json id name desc version 2>/dev/null`
+	# 	json_raw=`echo "${json_raw:-{}}" | jq ".apps.springboot=${springboot}" 2>/dev/null`
+	#     elif [[ ${app} == 'gunicorn' ]]; then
+	# 	gunicorn=`/etc/init.d/gunicorn list json id name desc version 2>/dev/null`
+	# 	json_raw=`echo "${json_raw:-{}}" | jq ".apps.gunicorn=${gunicorn}" 2>/dev/null`
+        #     elif [[ ${app} == 'mysql' ]]; then
+	# 	db_count=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s db_count 2>/dev/null`
+	# 	my_version=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s version 2>/dev/null`
+	# 	mysql="{\"version\": \"${my_version}\", \"databases\": ${db_count}}"
+	# 	json_raw=`echo "${json_raw:-{}}" | jq ".apps.mysql=${mysql}" 2>/dev/null`
+        #     fi
+        # done
 	json_keys=(
 	    'family'
 	    'release'
