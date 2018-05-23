@@ -32,11 +32,11 @@ refresh_cache() {
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
             fi
         done
-	json_keys=()
-	for key in ${json_keys[@]}; do
-            eval value=\${$key}
-	    json_raw=`echo "${json_raw:-{}}" | jq ".${key}=\"${value}\"" 2>/dev/null`
-	done
+	# json_keys=()
+	# for key in ${json_keys[@]}; do
+        #     eval value=\${$key}
+	#     json_raw=`echo "${json_raw:-{}}" | jq ".${key}=\"${value}\"" 2>/dev/null`
+	# done
         echo "${json_raw}" | jq . 2>/dev/null > ${file}
     fi
     echo "${file}"
