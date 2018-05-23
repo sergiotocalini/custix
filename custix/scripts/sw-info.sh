@@ -32,11 +32,51 @@ refresh_cache() {
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
             fi
         done
-	# json_keys=()
-	# for key in ${json_keys[@]}; do
-        #     eval value=\${$key}
-	#     json_raw=`echo "${json_raw:-{}}" | jq ".${key}=\"${value}\"" 2>/dev/null`
-	# done
+        uname_sr=`uname -sr 2>/dev/null`
+	family=`echo ${uname_sr} | awk '{print $1}'`
+        kernel=`echo ${uname_sr} | awk '{print $2}'`
+        boottime=`cat /proc/uptime 2>/dev/null | awk '{print $1}'`
+        if [[ ${family} == 'Linux' ]]; then
+	    release=`lsb_release -sd 2>/dev/null`
+            distro=`lsb_release -si 2>/dev/null`
+            if [[ ${distro} =~ (Ubuntu|Debian) ]]; then
+		updates_raw=`apt-get -s upgrade`
+		updates_security=`echo "${updates_raw}" | grep -ci ^inst.*security | tr -d '\n'`
+		updates_normal=`echo "${updates_raw}" | grep -iPc '^Inst((?!security).)*$' | tr -d '\n'`
+		updates='{"normal": '${updates_normal}', "security": '${updates_security}'}'
+		json_raw=`echo "${json_raw:-{}}" | jq ".updates=${updates}" 2>/dev/null`
+	    fi
+            filesystems='[ '
+            while read line; do
+		eval ${line}
+		[[ -z ${MOUNTPOINT} ]] && continue
+		filesystems+="{"
+		filesystems+="\"name\": \"${NAME}\",\"mountpoint\": \"${MOUNTPOINT}\","
+		filesystems+="\"size\": ${SIZE},\"fstype\": \"${FSTYPE}\""
+		filesystems+="},"
+		if [[ ${MOUNTPOINT} == '/' ]]; then
+                    if ! [[ ${NAME} =~ (sda|vda|sdb)[1-9] ]]; then
+			NAME="mapper/`echo "${NAME}" | sed 's/(.*).*//'`"
+                    fi
+                    fsroot_creation=`tune2fs -l /dev/${NAME} | grep 'Filesystem created:' \
+                                  | sed 's/Filesystem created://' | awk '{$1=$1};1'`
+                    installed=`date "+%s" -d "${fsroot_creation}"`
+		fi
+            done < <(lsblk -ibo NAME,MOUNTPOINT,SIZE,FSTYPE -P)
+            filesystems="${filesystems%?} ]"
+            json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
+	fi
+	json_keys=(
+	    'family'
+	    'release'
+            'boottime'
+            'distro'
+            'installed'
+	)
+	for key in ${json_keys[@]}; do
+            eval value=\${$key}
+	    json_raw=`echo "${json_raw:-{}}" | jq ".${key}=\"${value}\"" 2>/dev/null`
+	done	
         echo "${json_raw}" | jq . 2>/dev/null > ${file}
     fi
     echo "${file}"
