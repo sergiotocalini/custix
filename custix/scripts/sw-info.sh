@@ -31,8 +31,7 @@ refresh_cache() {
 		arango="{\"version\": \"${version}\", \"license\": \"${license}\"}"
             fi
         done
-	json_keys=(
-	)
+	json_keys=()
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
 	    json_raw=`echo "${json_raw:-{}}" | jq ".${key}=\"${value}\"" 2>/dev/null`
