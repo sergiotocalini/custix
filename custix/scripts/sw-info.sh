@@ -26,8 +26,8 @@ refresh_cache() {
 		mysql="{\"version\": \"${version}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.mysql=${mysql}" 2>/dev/null`
 	    elif [[ ${app} == 'arango' ]]; then
-		version=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s api-version -a p=version 2>/dev/null`
-		license=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s api-version -a p=license 2>/dev/null`
+		version=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=version 2>/dev/null`
+		license=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=license 2>/dev/null`
 		arango="{\"version\": \"${version}\", \"license\": \"${license}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
             fi
