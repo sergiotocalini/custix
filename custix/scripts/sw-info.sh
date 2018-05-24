@@ -30,6 +30,10 @@ refresh_cache() {
 		license=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=license 2>/dev/null`
 		arango="{\"version\": \"${version}\", \"license\": \"${license}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
+	    elif [[ ${app} == 'redis' ]]; then
+		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
+		redis="{\"version\": \"${version}\"}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
             fi
         done
         uname_sr=`uname -sr 2>/dev/null`
