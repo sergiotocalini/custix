@@ -32,7 +32,7 @@ refresh_cache() {
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
 	    elif [[ ${app} == 'redis' ]]; then
 		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
-		redis="{\"version\": \"${version}\"}"
+		redis="{\"version\": \"${version/$'\r'/}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
             fi
         done
