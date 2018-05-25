@@ -31,8 +31,9 @@ refresh_cache() {
 		arango="{\"version\": \"${version}\", \"license\": \"${license}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
 	    elif [[ ${app} == 'redis' ]]; then
+		dbs=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=count -a p=databases 2>/dev/null`
 		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
-		redis="{\"version\": \"${version/$'\r'/}\"}"
+		redis="{\"version\": \"${version/$'\r'/}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
             fi
         done
