@@ -15,10 +15,10 @@ refresh_cache() {
         IFS=":" APPS=(${AMANA_APPS})
         for app in ${APPS[@]}; do
             if [[ ${app} == 'springboot' ]]; then
-		springboot=`/etc/init.d/spring-boot list json id name desc version 2>/dev/null`
+		springboot=`sudo /etc/init.d/spring-boot list json id name desc version 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.springboot=${springboot}" 2>/dev/null`
 	    elif [[ ${app} == 'gunicorn' ]]; then
-		gunicorn=`/etc/init.d/gunicorn list json id name desc version 2>/dev/null`
+		gunicorn=`sudo /etc/init.d/gunicorn list json id name desc version 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.gunicorn=${gunicorn}" 2>/dev/null`
             elif [[ ${app} == 'mysql' ]]; then
 		dbs=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s db_count 2>/dev/null`
