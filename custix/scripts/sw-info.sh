@@ -27,6 +27,11 @@ refresh_cache() {
 		version=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s version 2>/dev/null`
 		mysql="{\"version\": \"${version}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.mysql=${mysql}" 2>/dev/null`
+            elif [[ ${app} == 'postgres' ]]; then
+		dbs=`/etc/zabbix/scripts/agentd/zapgix/zapgix.sh -s db_count 2>/dev/null`
+		version=`/etc/zabbix/scripts/agentd/zapgix/zapgix.sh -s version 2>/dev/null`
+		postgres="{\"version\": \"${version}\", \"databases\": ${dbs}}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.postgres=${postgres}" 2>/dev/null`
 	    elif [[ ${app} == 'arango' ]]; then
 		version=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=version 2>/dev/null`
 		license=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=license 2>/dev/null`
