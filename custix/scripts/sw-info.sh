@@ -5,6 +5,8 @@ SCRIPT_CACHE=${SCRIPT_DIR}/tmp
 SCRIPT_CACHE_TTL=5
 TIMESTAMP=`date '+%s'`
 
+. /etc/environment
+
 resource=${1:-full}
 property=${2}
 
