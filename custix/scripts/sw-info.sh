@@ -42,6 +42,14 @@ refresh_cache() {
 		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
 		redis="{\"version\": \"${version/$'\r'/}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
+	    elif [[ ${app} == 'elastic' ]]; then
+		dbs=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=count -a p=databases 2>/dev/null`
+		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
+		redis="{\"version\": \"${version/$'\r'/}\", \"databases\": ${dbs}}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
+	    elif [[ ${app} == 'kvm' ]]; then
+		kvm_report=`/etc/zabbix/scripts/agentd/virbix/virbix.sh -s report 2>/dev/null`
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.kvm=${kvm_report}" 2>/dev/null`
             fi
         done
         uname_sr=`uname -sr 2>/dev/null`
