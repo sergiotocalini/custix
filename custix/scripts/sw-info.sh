@@ -43,10 +43,10 @@ refresh_cache() {
 		redis="{\"version\": \"${version/$'\r'/}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
 	    elif [[ ${app} == 'elastic' ]]; then
-		dbs=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=count -a p=databases 2>/dev/null`
-		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
-		redis="{\"version\": \"${version/$'\r'/}\", \"databases\": ${dbs}}"
-		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
+		indices=`/etc/zabbix/scripts/agentd/elasix/elasix.sh -s discovery -a p=indices 2>/dev/null | wc -l`
+		version=`/etc/zabbix/scripts/agentd/elasix/elasix.sh -s stat -a p=root -a p=version.number 2>/dev/null`
+		elastic="{\"version\": \"${version/$'\r'/}\", \"indices\": ${indices}}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.elastic=${elastic}" 2>/dev/null`
 	    elif [[ ${app} == 'kvm' ]]; then
 		kvm_report=`/etc/zabbix/scripts/agentd/virbix/virbix.sh -s report 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.kvm=${kvm_report}" 2>/dev/null`
