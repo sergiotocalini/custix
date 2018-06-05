@@ -59,6 +59,10 @@ refresh_cache() {
 		version=`/etc/zabbix/scripts/agentd/lostix/lostix.sh -s node_stats -a p=version 2>/dev/null`
 		logstash="{\"version\": \"${version/$'\r'/}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.logstash=${logstash}" 2>/dev/null`
+	    elif [[ ${app} == 'jenkins' ]]; then
+		version=`/etc/zabbix/scripts/agentd/jenkix/jenkix.sh -s server -a p=version 2>/dev/null`
+		jenkins="{\"version\": \"${version/$'\r'/}\"}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.jenkins=${jenkins}" 2>/dev/null`
             fi
         done
         uname_sr=`uname -sr 2>/dev/null`
