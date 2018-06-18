@@ -98,6 +98,33 @@ refresh_cache() {
             done < <(lsblk -ibo NAME,MOUNTPOINT,SIZE,FSTYPE -P)
             filesystems="${filesystems%?} ]"
             json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
+
+	    dtctl=`timedatectl status`
+	    dst_l_oper=`echo "${dtctl}" | grep 'Last DST change:' | awk -F': ' '{print $2}'`
+	    dst_l_from=`echo "${dtctl}" | grep -A 1 'Last DST change:' | tail -1 | awk '{$1=$1};1'`
+	    dst_l_to=`echo "${dtctl}" | grep -A 2 'Last DST change:' | tail -1 | awk '{$1=$1};1'`
+	    dst_n_oper=`echo "${dtctl}" | grep 'Next DST change:' | awk -F': ' '{print $2}'`
+	    dst_n_from=`echo "${dtctl}" | grep -A 1 'Next DST change:' | tail -1 | awk '{$1=$1};1'`
+	    dst_n_to=`echo "${dtctl}" | grep -A 2 'Next DST change:' | tail -1 | awk '{$1=$1};1'`
+
+	    typeset -A content
+	    content["dst_active"]="DST active:"
+	    content["ntp_enable"]="(NTP enabled|Network time on):"
+	    content["ntp_sync"]="NTP synchronized:"
+	    content["time_local"]="Local time:"
+	    content["time_universal"]="Universal time:"
+	    content["time_rtc"]="RTC time:"
+	    content["timezone"]="(Timezone|Time zone):"
+	    content["timezone_rtc"]="RTC in local TZ:"
+
+	    dt_data='{ '
+	    dt_data+="\"dst_last\":{\"oper\":\"${dst_l_oper}\",\"from\":\"${dst_l_from}\",\"to\":\"${dst_l_to}\"},"
+	    dt_data+="\"dst_next\":{\"oper\":\"${dst_n_oper}\",\"from\":\"${dst_n_from}\",\"to\":\"${dst_n_to}\"},"
+	    for idx in ${!content[@]}; do
+		dt_data+="\"${idx}\": \"`echo "${dtctl}" | grep -E \"${content[${idx}]}\" | awk -F': ' '{print $2}'`\","
+	    done
+	    dt_data="${dt_data%?} }"
+            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${dt_data}" 2>/dev/null`	    
 	fi
 	json_keys=(
 	    'family'
