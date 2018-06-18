@@ -124,7 +124,7 @@ refresh_cache() {
 		datetime+="\"${idx}\": \"`echo "${dtctl}" | grep -E \"${content[${idx}]}\" | awk -F': ' '{print $2}'`\","
 	    done
 	    datetime="${datetime%?} }"
-            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${dt_data}" 2>/dev/null`	    
+            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${datetime}" 2>/dev/null`	    
 	fi
 	json_keys=(
 	    'family'
