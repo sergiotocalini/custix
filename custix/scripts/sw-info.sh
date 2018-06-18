@@ -97,7 +97,7 @@ refresh_cache() {
 		fi
             done < <(lsblk -ibo NAME,MOUNTPOINT,SIZE,FSTYPE -P)
             filesystems="${filesystems%?} ]"
-            json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
+#            json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
 
 	    dtctl=`timedatectl status`
 	    dst_l_oper=`echo "${dtctl}" | grep 'Last DST change:' | awk -F': ' '{print $2}'`
@@ -117,14 +117,14 @@ refresh_cache() {
 	    content["timezone"]="(Timezone|Time zone):"
 	    content["timezone_rtc"]="RTC in local TZ:"
 
-	    dt_data='{ '
-	    dt_data+="\"dst_last\":{\"oper\":\"${dst_l_oper}\",\"from\":\"${dst_l_from}\",\"to\":\"${dst_l_to}\"},"
-	    dt_data+="\"dst_next\":{\"oper\":\"${dst_n_oper}\",\"from\":\"${dst_n_from}\",\"to\":\"${dst_n_to}\"},"
+	    datetime='{ '
+	    datetime+="\"dst_last\":{\"oper\":\"${dst_l_oper}\",\"from\":\"${dst_l_from}\",\"to\":\"${dst_l_to}\"},"
+	    datetime+="\"dst_next\":{\"oper\":\"${dst_n_oper}\",\"from\":\"${dst_n_from}\",\"to\":\"${dst_n_to}\"},"
 	    for idx in ${!content[@]}; do
-		dt_data+="\"${idx}\": \"`echo "${dtctl}" | grep -E \"${content[${idx}]}\" | awk -F': ' '{print $2}'`\","
+		datetime+="\"${idx}\": \"`echo "${dtctl}" | grep -E \"${content[${idx}]}\" | awk -F': ' '{print $2}'`\","
 	    done
-	    dt_data="${dt_data%?} }"
-            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${dt_data}" 2>/dev/null`	    
+	    datetime="${datetime%?} }"
+#            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${dt_data}" 2>/dev/null`	    
 	fi
 	json_keys=(
 	    'family'
@@ -132,6 +132,8 @@ refresh_cache() {
             'boottime'
             'distro'
             'installed'
+	    'filesystems'
+	    'datetime'
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
