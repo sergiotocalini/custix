@@ -97,7 +97,7 @@ refresh_cache() {
 		fi
             done < <(lsblk -ibo NAME,MOUNTPOINT,SIZE,FSTYPE -P)
             filesystems="${filesystems%?} ]"
-#            json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
+            json_raw=`echo "${json_raw:-{}}" | jq ".filesystems=${filesystems}" 2>/dev/null`
 
 	    dtctl=`timedatectl status`
 	    dst_l_oper=`echo "${dtctl}" | grep 'Last DST change:' | awk -F': ' '{print $2}'`
@@ -124,7 +124,7 @@ refresh_cache() {
 		datetime+="\"${idx}\": \"`echo "${dtctl}" | grep -E \"${content[${idx}]}\" | awk -F': ' '{print $2}'`\","
 	    done
 	    datetime="${datetime%?} }"
-#            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${dt_data}" 2>/dev/null`	    
+            json_raw=`echo "${json_raw:-{}}" | jq ".datetime=${dt_data}" 2>/dev/null`	    
 	fi
 	json_keys=(
 	    'family'
@@ -132,8 +132,6 @@ refresh_cache() {
             'boottime'
             'distro'
             'installed'
-	    'filesystems'
-	    'datetime'
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
