@@ -91,7 +91,7 @@ refresh_cache() {
                     if ! [[ ${NAME} =~ (sda|vda|sdb)[1-9] ]]; then
 			NAME="mapper/`echo "${NAME}" | sed 's/(.*).*//'`"
                     fi
-                    fsroot_creation=`tune2fs -l /dev/${NAME} | grep 'Filesystem created:' \
+                    fsroot_creation=`sudo tune2fs -l /dev/${NAME} 2>/dev/null | grep 'Filesystem created:' \
                                   | sed 's/Filesystem created://' | awk '{$1=$1};1'`
                     installed=`date "+%s" -d "${fsroot_creation}"`
 		fi
