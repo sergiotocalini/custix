@@ -5,6 +5,8 @@ SCRIPT_CACHE=${SCRIPT_DIR}/tmp
 SCRIPT_CACHE_TTL=10
 TIMESTAMP=`date '+%s'`
 
+. /etc/environment
+
 resource=${1:-full}
 property=${2}
 
@@ -56,7 +58,7 @@ refresh_cache() {
 				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
 	cpu_threads_per_core=`echo "${cpuinfo}" | grep "^Thread(s) per core:" \
 				   | awk -F ':' '{print $2}' | awk '{$1=$1};1'`
-
+	site=${AMANA_SITE}
 	json_raw=`lsblk -d -ibo MODEL,NAME,SERIAL,SIZE,VENDOR -J 2>/dev/null | jq . 2>/dev/null`
         if [[ -z ${json_raw} ]]; then
             json_raw="{\"blockdevices\": ["
@@ -88,6 +90,7 @@ refresh_cache() {
 	    'sku'
 	    'type'
 	    'vendor'
+	    'site'
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}

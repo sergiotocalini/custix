@@ -33,30 +33,38 @@ refresh_cache() {
 		postgres="{\"version\": \"${version}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.postgres=${postgres}" 2>/dev/null`
 	    elif [[ ${app} == 'arango' ]]; then
-		version=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=version 2>/dev/null`
-		license=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version -a p=license 2>/dev/null`
+		version=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version \
+						      		     -a p=version 2>/dev/null`
+		license=`/etc/zabbix/scripts/agentd/aranix/aranix.sh -s api-version \
+								     -a p=license 2>/dev/null`
 		arango="{\"version\": \"${version}\", \"license\": \"${license}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.arango=${arango}" 2>/dev/null`
 	    elif [[ ${app} == 'redis' ]]; then
-		dbs=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=count -a p=databases 2>/dev/null`
-		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server -a p=redis_version 2>/dev/null`
+		dbs=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=count \
+								 -a p=databases 2>/dev/null`
+		version=`/etc/zabbix/scripts/agentd/zedisx/zedisx.sh -s info -a p=Server \
+								     -a p=redis_version 2>/dev/null`
 		redis="{\"version\": \"${version/$'\r'/}\", \"databases\": ${dbs}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.redis=${redis}" 2>/dev/null`
 	    elif [[ ${app} == 'elastic' ]]; then
-		indices=`/etc/zabbix/scripts/agentd/elasix/elasix.sh -s discovery -a p=indices 2>/dev/null | wc -l`
-		version=`/etc/zabbix/scripts/agentd/elasix/elasix.sh -s stat -a p=root -a p=version.number 2>/dev/null`
+		indices=`/etc/zabbix/scripts/agentd/elasix/elasix.sh -s discovery \
+								     -a p=indices 2>/dev/null | wc -l`
+		version=`/etc/zabbix/scripts/agentd/elasix/elasix.sh -s stat -a p=root \
+								     -a p=version.number 2>/dev/null`
 		elastic="{\"version\": \"${version/$'\r'/}\", \"indices\": ${indices}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.elastic=${elastic}" 2>/dev/null`
 	    elif [[ ${app} == 'kvm' ]]; then
 		kvm_report=`/etc/zabbix/scripts/agentd/virbix/virbix.sh -s report 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.kvm=${kvm_report}" 2>/dev/null`
 	    elif [[ ${app} == 'openldap' ]]; then
-		version=`/etc/zabbix/scripts/agentd/zaldap/zaldap.sh -q version | grep -oE "[0-9]{1,}\.[0-9]{1,}"`
+		version=`/etc/zabbix/scripts/agentd/zaldap/zaldap.sh -q version \ 
+			 | grep -oE "[0-9]{1,}\.[0-9]{1,}"`
 		version=`echo "${version:-0}" | paste -sd "." -`
 		openldap="{\"version\": \"${version/$'\r'/}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.openldap=${openldap}" 2>/dev/null`
 	    elif [[ ${app} == 'logstash' ]]; then
-		version=`/etc/zabbix/scripts/agentd/lostix/lostix.sh -s node_stats -a p=version 2>/dev/null`
+		version=`/etc/zabbix/scripts/agentd/lostix/lostix.sh -s node_stats \
+								     -a p=version 2>/dev/null`
 		logstash="{\"version\": \"${version/$'\r'/}\"}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.logstash=${logstash}" 2>/dev/null`
 	    elif [[ ${app} == 'jenkins' ]]; then
@@ -69,6 +77,7 @@ refresh_cache() {
 	family=`echo ${uname_sr} | awk '{print $1}'`
         kernel=`echo ${uname_sr} | awk '{print $2}'`
         boottime=`cat /proc/uptime 2>/dev/null | awk '{print $1}'`
+	env=${AMANA_ENV}
         if [[ ${family} == 'Linux' ]]; then
 	    release=`lsb_release -sd 2>/dev/null`
             distro=`lsb_release -si 2>/dev/null`
@@ -91,8 +100,9 @@ refresh_cache() {
                     if ! [[ ${NAME} =~ (sda|vda|sdb)[1-9] ]]; then
 			NAME="mapper/`echo "${NAME}" | sed 's/(.*).*//'`"
                     fi
-                    fsroot_creation=`sudo tune2fs -l /dev/${NAME} 2>/dev/null | grep 'Filesystem created:' \
-                                  | sed 's/Filesystem created://' | awk '{$1=$1};1'`
+                    fsroot_creation=`sudo tune2fs -l /dev/${NAME} 2>/dev/null \
+		                     | grep 'Filesystem created:' \
+                                     | sed 's/Filesystem created://' | awk '{$1=$1};1'`
                     installed=`date "+%s" -d "${fsroot_creation}"`
 		fi
             done < <(lsblk -ibo NAME,MOUNTPOINT,SIZE,FSTYPE -P)
@@ -132,6 +142,7 @@ refresh_cache() {
             'boottime'
             'distro'
             'installed'
+	    'env'
 	)
 	for key in ${json_keys[@]}; do
             eval value=\${$key}
