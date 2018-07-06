@@ -57,7 +57,7 @@ refresh_cache() {
 		kvm_report=`/etc/zabbix/scripts/agentd/virbix/virbix.sh -s report 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.kvm=${kvm_report}" 2>/dev/null`
 	    elif [[ ${app} == 'openldap' ]]; then
-		version=`/etc/zabbix/scripts/agentd/zaldap/zaldap.sh -q version \ 
+		version=`/etc/zabbix/scripts/agentd/zaldap/zaldap.sh -q version \
 			 | grep -oE "[0-9]{1,}\.[0-9]{1,}"`
 		version=`echo "${version:-0}" | paste -sd "." -`
 		openldap="{\"version\": \"${version/$'\r'/}\"}"
