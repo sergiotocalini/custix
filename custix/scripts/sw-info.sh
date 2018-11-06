@@ -22,6 +22,11 @@ refresh_cache() {
 	    elif [[ ${app} == 'gunicorn' ]]; then
 		gunicorn=`sudo /etc/init.d/gunicorn list json id name desc version 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.gunicorn=${gunicorn}" 2>/dev/null`
+	    elif [[ ${app} == 'dovecot' ]]; then
+		users=`/etc/zabbix/scripts/agentd/doveix/doveix.sh -s users 2>/dev/null | wc -l`
+		version=`/etc/zabbix/scripts/agentd/doveix/doveix.sh -s service -a p=version 2>/dev/null`
+		dovecot="{\"version\": \"${version}\", \"users\": \"${users}\"}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.dovecot=${dovecot}" 2>/dev/null`
             elif [[ ${app} == 'mysql' ]]; then
 		dbs=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s db_count 2>/dev/null`
 		version=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s version 2>/dev/null`
