@@ -25,7 +25,7 @@ refresh_cache() {
 	    elif [[ ${app} == 'dovecot' ]]; then
 		users=`/etc/zabbix/scripts/agentd/doveix/doveix.sh -s users 2>/dev/null | wc -l`
 		version=`/etc/zabbix/scripts/agentd/doveix/doveix.sh -s service -a p=version 2>/dev/null`
-		dovecot="{\"version\": \"${version}\", \"users\": \"${users}\"}"
+		dovecot="{\"version\": \"${version}\", \"users\": ${users}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.dovecot=${dovecot}" 2>/dev/null`
             elif [[ ${app} == 'mysql' ]]; then
 		dbs=`/etc/zabbix/scripts/agentd/mysbix/mysbix.sh -s db_count 2>/dev/null`
