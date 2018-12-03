@@ -58,6 +58,16 @@ refresh_cache() {
 								     -a p=version.number 2>/dev/null`
 		elastic="{\"version\": \"${version/$'\r'/}\", \"indices\": ${indices}}"
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.elastic=${elastic}" 2>/dev/null`
+	    elif [[ ${app} == 'splunk' ]]; then
+		version=`/etc/zabbix/scripts/agentd/spluix/spluix.sh -s service -a p=version 2>/dev/null`
+		indexes=`/etc/zabbix/scripts/agentd/spluix/spluix.sh -s data -a p=indexes -a p=list 2>/dev/null| wc -l`
+		splunk="{\"version\": \"${version/$'\r'/}\", \"indexes\": ${indexes}}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.splunk=${splunk}" 2>/dev/null`
+	    elif [[ ${app} == 'docker' ]]; then
+		version=`/etc/zabbix/scripts/agentd/zocker/zocker.sh -s service -a p=version 2>/dev/null`
+		containers=`/etc/zabbix/scripts/agentd/zocker/zocker.sh -s containers -a p=list 2>/dev/null| wc -l`
+		docker="{\"version\": \"${version/$'\r'/}\", \"containers\": ${containers}}"
+		json_raw=`echo "${json_raw:-{}}" | jq ".apps.docker=${docker}" 2>/dev/null`
 	    elif [[ ${app} == 'kvm' ]]; then
 		kvm_report=`/etc/zabbix/scripts/agentd/virbix/virbix.sh -s report 2>/dev/null`
 		json_raw=`echo "${json_raw:-{}}" | jq ".apps.kvm=${kvm_report}" 2>/dev/null`
