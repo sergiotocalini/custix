@@ -50,16 +50,18 @@ refresh_cache() {
     echo "${file}"
 }
 
-if [[ ${method} == "stats" ]]; then
+if [[ ${method:-list} =~ (list|LIST|all|ALL) ]]; then
+    res=`${DISK_SCRIPT} | jq -r ".[] | [.name, .size] | join(\"|\")" 2>/dev/null`
+elif [[ ${method} == "stats" ]]; then
     disk_json=$(refresh_cache ${resource})
     [ ${?} != 0 ] && zabbix_not_support
 
     if ! [[ ${property} =~ (^[[:blank:]]*$|full|all) ]]; then
-        attr="${property/all/}"
+        attr="stats.${property}"
+    else
+	attr="stats"
     fi
     res=`jq -r ".${attr/full/}" ${disk_json} 2>/dev/null`
-elif [[ ${method} =~ (list|LIST|all|ALL) ]]; then
-    res=`${DISK_SCRIPT} | jq -r ".[] | [.name, .size] | join(\"|\")" 2>/dev/null`
 fi
 
 echo "${res:-0}"
