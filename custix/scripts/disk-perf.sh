@@ -59,7 +59,7 @@ if [[ ${method} == "stats" ]]; then
     fi
     res=`jq -r ".${attr/full/}" ${disk_json} 2>/dev/null`
 elif [[ ${method} =~ (list|LIST|all|ALL) ]]; then
-    res=`${SCRIPT_DISK} | jq -r ".[] | [.name, .size] | join(\"|\")" 2>/dev/null`
+    res=`${DISK_SCRIPT} | jq -r ".[] | [.name, .size] | join(\"|\")" 2>/dev/null`
 fi
 
 echo "${res:-0}"
