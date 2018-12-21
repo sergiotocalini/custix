@@ -40,8 +40,8 @@ refresh_cache() {
 	data=`cat /sys/block/${resource}/stat 2>/dev/null`
 	for idx in ${!hdrs[@]}; do
 	    key="${hdrs[${idx}]}"
-	    val=`echo "${data}" | awk "{print \$${idx}}"`
-	    json_raw="\"${key}\":\"${val}\","
+	    val=`echo "${data}" | awk "{print \$$idx}"`
+	    json_raw+="\"${key}\":\"${val}\","
         done
 
 	json_raw="${json_raw%?}}}"
