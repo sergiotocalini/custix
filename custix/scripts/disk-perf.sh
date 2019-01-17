@@ -64,5 +64,5 @@ elif [[ ${method} == "stats" ]]; then
     res=`jq -r ".${attr/full/}" ${disk_json} 2>/dev/null`
 fi
 
-echo "${res:-0}"
+echo "${res}"
 exit ${rcode:-0}
